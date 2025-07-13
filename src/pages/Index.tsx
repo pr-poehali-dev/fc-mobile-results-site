@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
 
 const Index = () => {
@@ -58,6 +59,10 @@ const Index = () => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -93,6 +98,52 @@ const Index = () => {
     alert('🎉 Результат матча успешно опубликован!');
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!loginData.username || !loginData.password) {
+      alert('Пожалуйста, заполните все поля!');
+      return;
+    }
+    
+    setIsLoggingIn(true);
+    
+    // Симуляция авторизации
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Демо пользователи
+    const demoUsers = [
+      { username: 'player1', password: '123', name: 'GameMaster_2024', rating: 2450 },
+      { username: 'demo', password: 'demo', name: 'FC_Champion', rating: 2380 },
+      { username: 'test', password: 'test', name: 'SoccerPro', rating: 2320 }
+    ];
+    
+    const foundUser = demoUsers.find(u => 
+      u.username === loginData.username && u.password === loginData.password
+    );
+    
+    if (foundUser) {
+      setUser({ 
+        name: foundUser.name, 
+        rating: foundUser.rating, 
+        wins: Math.floor(Math.random() * 100) + 50,
+        losses: Math.floor(Math.random() * 30) + 10 
+      });
+      setIsLoginOpen(false);
+      setLoginData({ username: '', password: '' });
+      alert('🎮 Добро пожаловать в FC Mobile Arena!');
+    } else {
+      alert('❌ Неверный логин или пароль!');
+    }
+    
+    setIsLoggingIn(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    alert('👋 До свидания!');
+  };
+
   const topPlayers = [
     { rank: 1, name: "GameMaster_2024", rating: 2450, wins: 156, losses: 23 },
     { rank: 2, name: "FC_Legend", rating: 2380, wins: 142, losses: 28 },
@@ -118,13 +169,108 @@ const Index = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                className="gaming-border hover:neon-glow transition-all duration-300"
-              >
-                <Icon name="User" size={16} className="mr-2" />
-                Войти
-              </Button>
+              {user ? (
+                <div className="flex items-center space-x-3">
+                  <div className="text-right">
+                    <div className="font-semibold text-green-400">{user.name}</div>
+                    <div className="text-sm text-muted-foreground">Рейтинг: {user.rating}</div>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center font-bold">
+                    {user.name[0]}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="gaming-border hover:neon-glow transition-all duration-300"
+                  >
+                    <Icon name="LogOut" size={16} className="mr-2" />
+                    Выйти
+                  </Button>
+                </div>
+              ) : (
+                <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="gaming-border hover:neon-glow transition-all duration-300"
+                    >
+                      <Icon name="User" size={16} className="mr-2" />
+                      Войти
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="gaming-border bg-card/95 backdrop-blur-sm">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center">
+                        <Icon name="User" size={20} className="mr-2 text-green-500" />
+                        Вход в аккаунт
+                      </DialogTitle>
+                      <DialogDescription>
+                        Войдите в свой аккаунт FC Mobile Arena
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div>
+                        <Label htmlFor="login-username">Логин</Label>
+                        <Input
+                          id="login-username"
+                          placeholder="Введите логин"
+                          className="gaming-border"
+                          value={loginData.username}
+                          onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="login-password">Пароль</Label>
+                        <Input
+                          id="login-password"
+                          type="password"
+                          placeholder="Введите пароль"
+                          className="gaming-border"
+                          value={loginData.password}
+                          onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="bg-muted/50 p-3 rounded-lg text-sm">
+                        <p className="font-semibold mb-2">💡 Демо аккаунты:</p>
+                        <p>• <strong>player1</strong> / 123</p>
+                        <p>• <strong>demo</strong> / demo</p>
+                        <p>• <strong>test</strong> / test</p>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setIsLoginOpen(false)}
+                        >
+                          Отмена
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
+                          disabled={isLoggingIn}
+                        >
+                          {isLoggingIn ? (
+                            <>
+                              <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                              Вхожу...
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="LogIn" size={16} className="mr-2" />
+                              Войти
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
+              
               <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow">
                 <Icon name="Plus" size={16} className="mr-2" />
                 Добавить матч
