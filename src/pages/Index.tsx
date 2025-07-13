@@ -22,9 +22,7 @@ import Icon from "@/components/ui/icon";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("matches");
-
-  // Mock data
-  const recentMatches = [
+  const [matches, setMatches] = useState([
     {
       id: 1,
       player: "GameMaster_2024",
@@ -49,7 +47,51 @@ const Index = () => {
       date: "2024-01-14",
       result: "loss",
     },
-  ];
+  ]);
+  
+  const [formData, setFormData] = useState({
+    playerName: '',
+    yourScore: '',
+    opponentScore: '',
+    opponentName: '',
+    matchType: ''
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+  
+  const handleSubmitMatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.playerName || !formData.yourScore || !formData.opponentScore || !formData.opponentName || !formData.matchType) {
+      alert('Пожалуйста, заполните все поля!');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    // Симуляция отправки данных
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const newMatch = {
+      id: Date.now(),
+      player: formData.playerName,
+      score: `${formData.yourScore}-${formData.opponentScore}`,
+      opponent: formData.opponentName,
+      date: new Date().toISOString().split('T')[0],
+      result: parseInt(formData.yourScore) > parseInt(formData.opponentScore) ? 'win' :
+              parseInt(formData.yourScore) < parseInt(formData.opponentScore) ? 'loss' : 'draw'
+    };
+    
+    setMatches(prev => [newMatch, ...prev]);
+    setFormData({ playerName: '', yourScore: '', opponentScore: '', opponentName: '', matchType: '' });
+    setIsSubmitting(false);
+    
+    alert('🎉 Результат матча успешно опубликован!');
+  };
 
   const topPlayers = [
     { rank: 1, name: "GameMaster_2024", rating: 2450, wins: 156, losses: 23 },
@@ -201,61 +243,92 @@ const Index = () => {
                   Поделитесь результатом вашего последнего матча
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="player-name">Ваш игровой ник</Label>
-                  <Input
-                    id="player-name"
-                    placeholder="Введите ваш ник"
-                    className="gaming-border"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent>
+                <form onSubmit={handleSubmitMatch} className="space-y-4">
                   <div>
-                    <Label htmlFor="your-score">Ваши голы</Label>
+                    <Label htmlFor="player-name">Ваш игровой ник</Label>
                     <Input
-                      id="your-score"
-                      type="number"
-                      placeholder="0"
+                      id="player-name"
+                      placeholder="Введите ваш ник"
                       className="gaming-border"
+                      value={formData.playerName}
+                      onChange={(e) => handleInputChange('playerName', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="your-score">Ваши голы</Label>
+                      <Input
+                        id="your-score"
+                        type="number"
+                        placeholder="0"
+                        className="gaming-border"
+                        value={formData.yourScore}
+                        onChange={(e) => handleInputChange('yourScore', e.target.value)}
+                        min="0"
+                        max="20"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="opponent-score">Голы соперника</Label>
+                      <Input
+                        id="opponent-score"
+                        type="number"
+                        placeholder="0"
+                        className="gaming-border"
+                        value={formData.opponentScore}
+                        onChange={(e) => handleInputChange('opponentScore', e.target.value)}
+                        min="0"
+                        max="20"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="opponent-name">Ник соперника</Label>
+                    <Input
+                      id="opponent-name"
+                      placeholder="Ник соперника"
+                      className="gaming-border"
+                      value={formData.opponentName}
+                      onChange={(e) => handleInputChange('opponentName', e.target.value)}
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="opponent-score">Голы соперника</Label>
-                    <Input
-                      id="opponent-score"
-                      type="number"
-                      placeholder="0"
-                      className="gaming-border"
-                    />
+                    <Label htmlFor="match-type">Тип матча</Label>
+                    <Select value={formData.matchType} onValueChange={(value) => handleInputChange('matchType', value)}>
+                      <SelectTrigger className="gaming-border">
+                        <SelectValue placeholder="Выберите тип матча" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ranked">Рейтинговый</SelectItem>
+                        <SelectItem value="casual">Обычный</SelectItem>
+                        <SelectItem value="tournament">Турнир</SelectItem>
+                        <SelectItem value="friendly">Товарищеский</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="opponent-name">Ник соперника</Label>
-                  <Input
-                    id="opponent-name"
-                    placeholder="Ник соперника"
-                    className="gaming-border"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="match-type">Тип матча</Label>
-                  <Select>
-                    <SelectTrigger className="gaming-border">
-                      <SelectValue placeholder="Выберите тип матча" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ranked">Рейтинговый</SelectItem>
-                      <SelectItem value="casual">Обычный</SelectItem>
-                      <SelectItem value="tournament">Турнир</SelectItem>
-                      <SelectItem value="friendly">Товарищеский</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow">
-                  <Icon name="Send" size={16} className="mr-2" />
-                  Опубликовать результат
-                </Button>
+                  <Button 
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                        Публикую...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Send" size={16} className="mr-2" />
+                        Опубликовать результат
+                      </>
+                    )}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
 
@@ -272,7 +345,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentMatches.map((match) => (
+                  {matches.map((match) => (
                     <div
                       key={match.id}
                       className="flex items-center justify-between p-3 rounded-lg gaming-border bg-background/20"
